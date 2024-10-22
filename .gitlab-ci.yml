@@ -20,6 +20,22 @@ stages:
 #   script: bearer scan .
 
 # Deploy the application
+# zap_scan:
+#   stage: dast
+#   image: docker:latest
+#   services: 
+#     - docker:dind
+#   script:
+#     - unset DOCKER_HOST
+#     - mkdir -p /zap/wrk
+#     - docker-compose up -d
+#     - docker run -d --network=test_my_app_network -v /zap/wrk:/zap ghcr.io/zaproxy/zaproxy:stable ./zap-full-scan.py -t http://app:8080 -J zap.json
+#     - cat /zap/wrk/zap.json
+#   artifacts:
+#     paths:
+#       - zap.json
+
+
 zap_scan:
   stage: dast
   image: docker:latest
@@ -27,13 +43,12 @@ zap_scan:
     - docker:dind
   script:
     - unset DOCKER_HOST
-    - mkdir -p /zap/wrk
     - docker-compose up -d
-    - docker run -d --network=test_my_app_network -v /zap/wrk:/zap ghcr.io/zaproxy/zaproxy:stable ./zap-full-scan.py -t http://app:8080 -J zap.json
-    - cat /zap/wrk/zap.json
-  artifacts:
-    paths:
-      - zap.json
+    - mkdir zap-reports
+    - cd zap-reports
+    - docker network list
+    - docker pull ghcr.io/zaproxy/zaproxy:stable || echo
+    - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://app:8080
 
 # Variables to manage Docker setup
 variables:
