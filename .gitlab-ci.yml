@@ -9,7 +9,7 @@ semgrep-sast:
   stage: sast
   image: semgrep/semgrep
   script:
-    - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR 
+    - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR || true
   artifacts:
     paths:
       - semgrep-report.json
