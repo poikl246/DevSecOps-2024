@@ -36,6 +36,21 @@ stages:
 #       - zap.json
 
 
+# zap_scan:
+#   stage: dast
+#   image: docker:latest
+#   services: 
+#     - docker:dind
+#   script:
+#     - unset DOCKER_HOST
+#     - docker-compose up -d
+#     - mkdir zap-reports
+#     - cd zap-reports
+#     - docker network list
+#     - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://app:8080 > zap.txt || true 
+#     - cat zap.txt
+
+
 zap_scan:
   stage: dast
   image: docker:latest
@@ -47,7 +62,7 @@ zap_scan:
     - mkdir zap-reports
     - cd zap-reports
     - docker network list
-    - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://app:8080 > zap.txt || true 
+    - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://app:8080 > zap.txt || true 
     - cat zap.txt
 
 # Variables to manage Docker setup
