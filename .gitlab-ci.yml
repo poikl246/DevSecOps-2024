@@ -1,31 +1,61 @@
 stages:
-  - sast
+  # - sast
   - dast
 
+# bearer-sast:
+#   stage: sast
+#   image:
+#     name: bearer/bearer
+#     entrypoint: [""]
+#   script: bearer scan . --format gitlab-sast --output gl-sast-report.json || true
+#   artifacts:
+#     paths:
+#       - gl-sast-report.json
 
-# Semgrep SAST scan
+# semgrep-sast:
+#   stage: sast
+#   image: semgrep/semgrep
+#   script:
+#     - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR || true
+#   artifacts:
+#     paths:
+#       - semgrep-report.json
 
 
 
-# Bearer SAST
-bearer-sast:
-  stage: sast
-  image:
-    name: bearer/bearer
-    entrypoint: [""]
-  script: bearer scan . --format gitlab-sast --output gl-sast-report.json || true
-  artifacts:
-    paths:
-      - gl-sast-report.json
-
-semgrep-sast:
-  stage: sast
-  image: semgrep/semgrep
+zap_scan:
+  stage: dast
+  image: docker:latest
+  services: 
+    - docker:dind
   script:
-    - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR || true
-  artifacts:
-    paths:
-      - semgrep-report.json
+    - unset DOCKER_HOST
+    - docker-compose up -d
+    - mkdir zap-reports
+    - cd zap-reports
+    - docker network list
+    - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://app:8080 > zap.txt || true 
+    - cat zap.txt
+    - docker-compose down
+
+dast:
+  stage: dast
+  image: docker:latest
+  services: 
+    - docker:dind
+  script:
+    - unset DOCKER_HOST
+    - docker-compose up -d
+    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER})  -v $(pwd):/tmp/test frapsoft/nikto -host http://app:8080 > /tmp/test/nikto.txt || true
+    - cat nikto.txt
+    - docker-compose down
+
+# Variables to manage Docker setup
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+
 
 # Deploy the application
 # zap_scan:
@@ -57,36 +87,3 @@ semgrep-sast:
 #     - docker network list
 #     - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://app:8080 > zap.txt || true 
 #     - cat zap.txt
-
-
-zap_scan:
-  stage: dast
-  image: docker:latest
-  services: 
-    - docker:dind
-  script:
-    - unset DOCKER_HOST
-    - docker-compose up -d
-    - mkdir zap-reports
-    - cd zap-reports
-    - docker network list
-    - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://app:8080 > zap.txt || true 
-    - cat zap.txt
-    - docker-compose down
-
-dast:
-  stage: dast
-  image: sullo/nikto
-  services: 
-    - docker:dind
-  script:
-    - unset DOCKER_HOST
-    - docker-compose up -d
-    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER})  -v $(pwd):/tmp/test frapsoft/nikto -host http://app:8080 > /tmp/test/nikto.txt || true
-    - cat nikto.txt
-    - docker-compose down
-
-# Variables to manage Docker setup
-variables:
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
