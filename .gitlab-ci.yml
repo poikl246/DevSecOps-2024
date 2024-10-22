@@ -9,7 +9,10 @@ semgrep-sast:
   stage: sast
   image: semgrep/semgrep
   script:
-    - semgrep --config auto .
+    - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR 
+  artifacts:
+    paths:
+      - semgrep-report.json
 
 # Bearer SAST
 bearer-sast:
@@ -17,7 +20,10 @@ bearer-sast:
   image:
     name: bearer/bearer
     entrypoint: [""]
-  script: bearer scan .
+  script: bearer scan $CI_PROJECT_DIR  --format gitlab-sast --output gl-sast-report.json
+  artifacts:
+    reports:
+      sast: gl-sast-report.json
 
 # Deploy the application
 # zap_scan:
@@ -74,7 +80,7 @@ dast:
   script:
     - unset DOCKER_HOST
     - docker-compose up -d
-    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER})  -v $(pwd):/zap/wrk frapsoft/nikto -host http://app:8080 > nikto.txt || true
+    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER})  -v $(pwd):/tmp/test frapsoft/nikto -host http://app:8080 > /tmp/test/nikto.txt || true
     - cat nikto.txt
     - docker-compose down
 
