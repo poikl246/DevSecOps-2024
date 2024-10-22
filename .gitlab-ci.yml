@@ -5,14 +5,7 @@ stages:
 
 # Semgrep SAST scan
 
-semgrep-sast:
-  stage: sast
-  image: semgrep/semgrep
-  script:
-    - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR || true
-  artifacts:
-    paths:
-      - semgrep-report.json
+
 
 # Bearer SAST
 bearer-sast:
@@ -22,8 +15,17 @@ bearer-sast:
     entrypoint: [""]
   script: bearer scan $CI_PROJECT_DIR --format gitlab-sast --output gl-sast-report.json
   artifacts:
-    reports:
+    paths:
       sast: gl-sast-report.json
+
+semgrep-sast:
+  stage: sast
+  image: semgrep/semgrep
+  script:
+    - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR || true
+  artifacts:
+    paths:
+      - semgrep-report.json
 
 # Deploy the application
 # zap_scan:
