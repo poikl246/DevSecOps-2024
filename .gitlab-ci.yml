@@ -29,7 +29,7 @@ zap_scan:
     - unset DOCKER_HOST
     - mkdir -p /zap/wrk
     - docker-compose up -d
-    - docker run -d --network=test_my_app_network -v /zap/wrk:/zap ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://app:8080 -J zap.json
+    - docker run -d --network=test_my_app_network -v /zap/wrk:/zap ghcr.io/zaproxy/zaproxy:stable ./zap-full-scan.py -t http://app:8080 -J zap.json
     - cat /zap/wrk/zap.json
   artifacts:
     paths:
