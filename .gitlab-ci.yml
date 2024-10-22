@@ -64,6 +64,19 @@ zap_scan:
     - docker network list
     - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://app:8080 > zap.txt || true 
     - cat zap.txt
+    - docker-compose down
+
+dast:
+  stage: dast
+  image: sullo/nikto
+  services: 
+    - docker:dind
+  script:
+    - unset DOCKER_HOST
+    - docker-compose up -d
+    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER})  -v $(pwd):/zap/wrk frapsoft/nikto -host http://app:8080 > nikto.txt || true
+    - cat nikto.txt
+    - docker-compose down
 
 # Variables to manage Docker setup
 variables:
