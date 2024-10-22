@@ -17,9 +17,9 @@ stages:
 #   image: semgrep/semgrep
 #   script:
 #     - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR || true
-#   artifacts:
-#     paths:
-#       - semgrep-report.json
+  # artifacts:
+  #   paths:
+  #     - semgrep-report.json
 
 
 dast:
@@ -33,8 +33,10 @@ dast:
     - docker run --name nikto --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER}) frapsoft/nikto -host http://app:8080 > /nikto.txt || true
     - docker cp nikto:/nikto.txt . 
     - docker rm nikto
-    - cat nikto.txt
     - docker-compose down
+  artifacts:
+    paths:
+      - nikto.txt
 
 zap_scan:
   stage: dast
