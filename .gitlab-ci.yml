@@ -22,6 +22,17 @@ stages:
 #       - semgrep-report.json
 
 
+dast:
+  stage: dast
+  image: docker:latest
+  services: 
+    - docker:dind
+  script:
+    - unset DOCKER_HOST
+    - docker-compose up -d
+    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER})  -v $(pwd):/home/test frapsoft/nikto -host http://app:8080 > /home/test/nikto.txt || true
+    - cat nikto.txt
+    - docker-compose down
 
 zap_scan:
   stage: dast
@@ -38,17 +49,6 @@ zap_scan:
     - cat zap.txt
     - docker-compose down
 
-dast:
-  stage: dast
-  image: docker:latest
-  services: 
-    - docker:dind
-  script:
-    - unset DOCKER_HOST
-    - docker-compose up -d
-    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER})  -v $(pwd):/home/test frapsoft/nikto -host http://app:8080 > /home/test/nikto.txt || true
-    - cat nikto.txt
-    - docker-compose down
 
 # Variables to manage Docker setup
 variables:
