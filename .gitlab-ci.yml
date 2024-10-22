@@ -1,0 +1,41 @@
+stages:
+  # - sast
+  - dast
+
+
+# Semgrep SAST scan
+
+# semgrep-sast:
+#   stage: sast
+#   image: semgrep/semgrep
+#   script:
+#     - semgrep --config auto .
+
+# # Bearer SAST
+# bearer-sast:
+#   stage: sast
+#   image:
+#     name: bearer/bearer
+#     entrypoint: [""]
+#   script: bearer scan .
+
+# Deploy the application
+zap_scan:
+  stage: dast
+  image: docker:latest
+  services: 
+    - docker:dind
+  script:
+    - unset DOCKER_HOST
+    - mkdir -p /zap/wrk
+    - docker-compose up -d
+    - docker run -it -v /zap/wrk:/zap ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://localhost:8080 -J zap.json
+    - cat /zap/wrk/zap.json
+  artifacts:
+    paths:
+      - zap.json
+
+# Variables to manage Docker setup
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
