@@ -32,9 +32,7 @@ dast:
     - docker-compose up -d
     - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER}) frapsoft/nikto -host http://app:8080 || true
     - docker-compose down
-  artifacts:
-    paths:
-      - nikto.txt
+
 
 # zap_scan:
 #   stage: dast
