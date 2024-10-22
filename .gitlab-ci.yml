@@ -30,9 +30,35 @@ dast:
   script:
     - unset DOCKER_HOST
     - docker-compose up -d
+    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER}) hysnsec/nikto -host http://app:8080 || true
+    - docker-compose down
+
+
+arachni:
+  stage: dast
+  image: docker:latest
+  services: 
+    - docker:dind
+  script:
+    - unset DOCKER_HOST
+    - docker-compose up -d
     - docker run --name arachni --rm --network test_my_app_network -v $(pwd):/tmp -u $(id -u ${USER}):$(id -g ${USER}) arachni/arachni http://app:8080  || true
     - docker-compose down
   
+nikto_scan:
+  stage: dast
+  image: docker:latest
+  services: 
+    - docker:dind
+  script:
+    - unset DOCKER_HOST
+    - docker-compose up -d
+    - docker pull hysnsec/nikto
+    - docker run --rm -v $(pwd):/tmp hysnsec/nikto -h http://appsec-lab1-sqli-1:8080 -o /tmp/nikto-output.xml || true
+  artifacts:
+    paths: [nikto-output.xml]
+    when: always
+  allow_failure: true
 
 
 # zap_scan:
