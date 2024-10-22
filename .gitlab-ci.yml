@@ -1,25 +1,25 @@
 stages:
-  # - sast
+  - sast
   - dast
 
-# bearer-sast:
-#   stage: sast
-#   image:
-#     name: bearer/bearer
-#     entrypoint: [""]
-#   script: bearer scan . --format gitlab-sast --output gl-sast-report.json || true
-#   artifacts:
-#     paths:
-#       - gl-sast-report.json
+bearer-sast:
+  stage: sast
+  image:
+    name: bearer/bearer
+    entrypoint: [""]
+  script: bearer scan . --format gitlab-sast --output gl-sast-report.json || true
+  artifacts:
+    paths:
+      - gl-sast-report.json
 
-# semgrep-sast:
-#   stage: sast
-#   image: semgrep/semgrep
-#   script:
-#     - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR || true
-  # artifacts:
-  #   paths:
-  #     - semgrep-report.json
+semgrep-sast:
+  stage: sast
+  image: semgrep/semgrep
+  script:
+    - semgrep --config auto --json --output semgrep-report.json $CI_PROJECT_DIR || true
+  artifacts:
+    paths:
+      - semgrep-report.json
 
 
 dast:
@@ -34,7 +34,7 @@ dast:
     - docker-compose down
 
 
-arachni:
+zap_scan:
   stage: dast
   image: docker:latest
   services: 
@@ -42,41 +42,14 @@ arachni:
   script:
     - unset DOCKER_HOST
     - docker-compose up -d
-    - docker run --name arachni --rm --network test_my_app_network -v $(pwd):/tmp -u $(id -u ${USER}):$(id -g ${USER}) arachni/arachni http://app:8080  || true
+    - mkdir zap-reports
+    - cd zap-reports
+    - docker network list
+    - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://app:8080 > zap.txt || true 
+    - cat zap.txt
     - docker-compose down
   
-nikto_scan:
-  stage: dast
-  image: docker:latest
-  services: 
-    - docker:dind
-  script:
-    - unset DOCKER_HOST
-    - docker-compose up -d
-    - docker pull hysnsec/nikto
-    - docker run --rm -v $(pwd):/tmp hysnsec/nikto -h http://app:8080 -o /tmp/nikto-output.xml || true
-    - docker-compose down
-    - ls -la /tmp/nikto-output.xml  # Проверка наличия файла
-  artifacts:
-    paths:
-      - tmp/nikto-output.xml   # Относительный путь до артефакта
-    when: always
-  allow_failure: true
 
-# zap_scan:
-#   stage: dast
-#   image: docker:latest
-#   services: 
-#     - docker:dind
-#   script:
-#     - unset DOCKER_HOST
-#     - docker-compose up -d
-#     - mkdir zap-reports
-#     - cd zap-reports
-#     - docker network list
-#     - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://app:8080 > zap.txt || true 
-#     - cat zap.txt
-#     - docker-compose down
 
 
 # Variables to manage Docker setup
@@ -116,3 +89,38 @@ variables:
 #     - docker network list
 #     - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://app:8080 > zap.txt || true 
 #     - cat zap.txt
+
+
+
+
+# НЕ РАБОТАЕТ 
+# arachni:
+#   stage: dast
+#   image: docker:latest
+#   services: 
+#     - docker:dind
+#   script:
+#     - unset DOCKER_HOST
+#     - docker-compose up -d
+#     - docker run --name arachni --rm --network test_my_app_network -v $(pwd):/tmp -u $(id -u ${USER}):$(id -g ${USER}) arachni/arachni http://app:8080  || true
+#     - docker-compose down
+
+
+# nikto_scan:
+#   stage: dast
+#   image: docker:latest
+#   services: 
+#     - docker:dind
+#   script:
+#     - unset DOCKER_HOST
+#     - docker-compose up -d
+#     - docker pull hysnsec/nikto
+#     - docker run --rm -v $(pwd):/tmp hysnsec/nikto -h http://app:8080 -o /tmp/nikto-output.xml || true
+#     - docker-compose down
+#     - ls -la /tmp/nikto-output.xml  # Проверка наличия файла
+#   artifacts:
+#     paths:
+#       - tmp/nikto-output.xml   # Относительный путь до артефакта
+#     when: always
+#   allow_failure: true
+
