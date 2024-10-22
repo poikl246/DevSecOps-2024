@@ -10,7 +10,9 @@ stages:
 # Bearer SAST
 bearer-sast:
   stage: sast
-  image: bearer/bearer
+  image:
+    name: bearer/bearer
+    entrypoint: [""]
   script: bearer scan . --output gl-sast-report.json || true
   artifacts:
     paths:
