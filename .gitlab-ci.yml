@@ -5,19 +5,19 @@ stages:
 
 # Semgrep SAST scan
 
-# semgrep-sast:
-#   stage: sast
-#   image: semgrep/semgrep
-#   script:
-#     - semgrep --config auto .
+semgrep-sast:
+  stage: sast
+  image: semgrep/semgrep
+  script:
+    - semgrep --config auto .
 
-# # Bearer SAST
-# bearer-sast:
-#   stage: sast
-#   image:
-#     name: bearer/bearer
-#     entrypoint: [""]
-#   script: bearer scan .
+# Bearer SAST
+bearer-sast:
+  stage: sast
+  image:
+    name: bearer/bearer
+    entrypoint: [""]
+  script: bearer scan .
 
 # Deploy the application
 # zap_scan:
