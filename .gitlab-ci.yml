@@ -13,7 +13,7 @@ bearer-sast:
   image:
     name: bearer/bearer
     entrypoint: [""]
-  script: bearer scan . --output gl-sast-report.json || true
+  script: bearer scan . --format gitlab-sast --output gl-sast-report.json || true
   artifacts:
     paths:
       - gl-sast-report.json
