@@ -30,8 +30,9 @@ dast:
   script:
     - unset DOCKER_HOST
     - docker-compose up -d
-    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER}) frapsoft/nikto -host http://app:8080 || true
+    - docker run --name nikto --rm --network test_my_app_network -v $(pwd):/tmp -u $(id -u ${USER}):$(id -g ${USER}) arachni/arachni http://app:8080 --output=/tmp/output.afr || true
     - docker-compose down
+    - cat output.afr
 
 
 # zap_scan:
