@@ -47,8 +47,8 @@ zap_scan:
     - mkdir zap-reports
     - cd zap-reports
     - docker network list
-    - docker pull ghcr.io/zaproxy/zaproxy:stable || echo
-    - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://app:8080
+    - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://app:8080 -J zap.json || true 
+    - cat zap.json
 
 # Variables to manage Docker setup
 variables:
