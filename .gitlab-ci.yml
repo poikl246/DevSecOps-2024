@@ -30,7 +30,9 @@ dast:
   script:
     - unset DOCKER_HOST
     - docker-compose up -d
-    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER})  -v $(pwd):/home/test frapsoft/nikto -host http://app:8080 > /home/test/nikto.txt || true
+    - docker run --name nikto --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER}) frapsoft/nikto -host http://app:8080 > /nikto.txt || true
+    - docker cp nikto:/nikto.txt . 
+    - docker rm nikto
     - cat nikto.txt
     - docker-compose down
 
