@@ -30,7 +30,7 @@ dast:
   script:
     - unset DOCKER_HOST
     - docker-compose up -d
-    - docker run --name nikto --rm --network test_my_app_network  -u $(id -u ${USER}):$(id -g ${USER}) hysnsec/nikto -host http://app:8080 || true
+    - docker run --name nikto --rm --network test_my_app_network -v $(pwd):/tmp -u $(id -u ${USER}):$(id -g ${USER}) hysnsec/nikto -host http://app:8080 -o /tmp/nikto1-output.xml || true
     - docker-compose down
 
 
@@ -54,12 +54,14 @@ nikto_scan:
     - unset DOCKER_HOST
     - docker-compose up -d
     - docker pull hysnsec/nikto
-    - docker run --rm -v $(pwd):/tmp hysnsec/nikto -h http://appsec-lab1-sqli-1:8080 -o /tmp/nikto-output.xml || true
+    - docker run --rm -v $(pwd):/tmp hysnsec/nikto -h http://app:8080 -o /tmp/nikto-output.xml || true
+    - docker-compose down
+    - ls -la /tmp/nikto-output.xml  # Проверка наличия файла
   artifacts:
-    paths: [nikto-output.xml]
+    paths:
+      - tmp/nikto-output.xml   # Относительный путь до артефакта
     when: always
   allow_failure: true
-
 
 # zap_scan:
 #   stage: dast
