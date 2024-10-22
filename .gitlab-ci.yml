@@ -14,7 +14,7 @@ bearer-sast:
   script: bearer scan . --output gl-sast-report.json || true
   artifacts:
     paths:
-      sast: gl-sast-report.json
+      - gl-sast-report.json
 
 semgrep-sast:
   stage: sast
