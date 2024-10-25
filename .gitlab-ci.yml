@@ -21,7 +21,6 @@ semgrep-sast:
     paths:
       - semgrep-report.json
 
-
 dast:
   stage: dast
   image: docker:latest
@@ -30,9 +29,8 @@ dast:
   script:
     - unset DOCKER_HOST
     - docker-compose up -d
-    - docker run --name nikto --rm --network test_my_app_network -v $(pwd):/tmp -u $(id -u ${USER}):$(id -g ${USER}) hysnsec/nikto -host http://app:8080 -o /tmp/nikto1-output.xml || true
+    - docker run --name nikto --rm --network test_my_app_network -u $(id -u ${USER}):$(id -g ${USER}) hysnsec/nikto -host http://app:8080 || true
     - docker-compose down
-
 
 zap_scan:
   stage: dast
@@ -42,85 +40,5 @@ zap_scan:
   script:
     - unset DOCKER_HOST
     - docker-compose up -d
-    - mkdir zap-reports
-    - cd zap-reports
-    - docker network list
-    - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://app:8080 > zap.txt || true 
-    - cat zap.txt
+    - docker run --name zap-container --rm --network test_my_app_network -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py -t http://app:8080 || true
     - docker-compose down
-  
-
-
-
-# Variables to manage Docker setup
-variables:
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
-
-
-
-# Deploy the application
-# zap_scan:
-#   stage: dast
-#   image: docker:latest
-#   services: 
-#     - docker:dind
-#   script:
-#     - unset DOCKER_HOST
-#     - mkdir -p /zap/wrk
-#     - docker-compose up -d
-#     - docker run -d --network=test_my_app_network -v /zap/wrk:/zap ghcr.io/zaproxy/zaproxy:stable ./zap-full-scan.py -t http://app:8080 -J zap.json
-#     - cat /zap/wrk/zap.json
-#   artifacts:
-#     paths:
-#       - zap.json
-
-
-# zap_scan:
-#   stage: dast
-#   image: docker:latest
-#   services: 
-#     - docker:dind
-#   script:
-#     - unset DOCKER_HOST
-#     - docker-compose up -d
-#     - mkdir zap-reports
-#     - cd zap-reports
-#     - docker network list
-#     - docker run  --name zap-container --network test_my_app_network --rm -v $(pwd):/zap/wrk -u $(id -u ${USER}):$(id -g ${USER}) ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://app:8080 > zap.txt || true 
-#     - cat zap.txt
-
-
-
-
-# НЕ РАБОТАЕТ 
-# arachni:
-#   stage: dast
-#   image: docker:latest
-#   services: 
-#     - docker:dind
-#   script:
-#     - unset DOCKER_HOST
-#     - docker-compose up -d
-#     - docker run --name arachni --rm --network test_my_app_network -v $(pwd):/tmp -u $(id -u ${USER}):$(id -g ${USER}) arachni/arachni http://app:8080  || true
-#     - docker-compose down
-
-
-# nikto_scan:
-#   stage: dast
-#   image: docker:latest
-#   services: 
-#     - docker:dind
-#   script:
-#     - unset DOCKER_HOST
-#     - docker-compose up -d
-#     - docker pull hysnsec/nikto
-#     - docker run --rm -v $(pwd):/tmp hysnsec/nikto -h http://app:8080 -o /tmp/nikto-output.xml || true
-#     - docker-compose down
-#     - ls -la /tmp/nikto-output.xml  # Проверка наличия файла
-#   artifacts:
-#     paths:
-#       - tmp/nikto-output.xml   # Относительный путь до артефакта
-#     when: always
-#   allow_failure: true
-
